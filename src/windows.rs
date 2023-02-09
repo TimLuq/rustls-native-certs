@@ -24,5 +24,13 @@ pub fn load_native_certs() -> Result<Vec<Certificate>, Error> {
         }
     }
 
+    if let Ok(current_machine_store) = schannel::cert_store::CertStore::open_local_machine("ROOT") {
+        for cert in current_machine_store.certs() {
+            if usable_for_rustls(cert.valid_uses().unwrap()) && cert.is_time_valid().unwrap() {
+                certs.push(Certificate(cert.to_der().to_vec()));
+            }
+        }
+    }
+
     Ok(certs)
 }
